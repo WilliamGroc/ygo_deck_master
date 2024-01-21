@@ -10,27 +10,16 @@ import (
 	Users "ygocarddb/api/users"
 	Database "ygocarddb/database"
 	Middleware "ygocarddb/middlewares"
-	models "ygocarddb/models"
 )
 
-func Migrate() {
-	Database.Instance.AutoMigrate(
-		&models.Deck{},
-		&models.CardImage{},
-		&models.Card{},
-		&models.User{})
-
-	log.Println("Database Migration Completed...")
-}
-
 func main() {
+	// Database.Connect()
+	Database.InitMongoDb()
+
 	r := mux.NewRouter()
 
 	r.Use(Middleware.LoggingMiddleware)
 	r.Use(Middleware.ContentTypeApplicationJsonMiddleware)
-
-	Database.Connect()
-	Migrate()
 
 	Cards.RegisterRoutes(r)
 	Users.RegisterRoutes(r)

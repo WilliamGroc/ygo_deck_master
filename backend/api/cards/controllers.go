@@ -1,6 +1,7 @@
 package cards
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -9,88 +10,35 @@ import (
 	Database "ygocarddb/database"
 	models "ygocarddb/models"
 
-	"github.com/gorilla/mux"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 func GetCards(w http.ResponseWriter, r *http.Request) {
-	db := Database.Instance
+	db := Database.MongoInstance
+	coll := db.Collection("Card")
+
+	cursor, err := coll.Find(context.TODO(), bson.D{{}})
 
 	var cards []models.Card
-	result := db.Find(&cards)
 
-	if result.Error != nil {
-		log.Fatal(result.Error)
+	if err = cursor.All(context.TODO(), &cards); err != nil {
+		panic(err)
+	}
+
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	json.NewEncoder(w).Encode(cards)
 }
 
 func GetCard(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
+	db := Database.MongoInstance
+	coll := db.Collection("Card")
 
-	db := Database.Instance
-
-	var card models.Card
-	result := db.First(&card, params["id"])
-
-	if result.Error != nil {
-		log.Fatal(result.Error)
-	}
-
-	json.NewEncoder(w).Encode(card)
-}
-
-func CreateCard(w http.ResponseWriter, r *http.Request) {
-	db := Database.Instance
+	cursor, err := coll.FindOne(context.TODO(), bson.D{{}})
 
 	var card models.Card
-	json.NewDecoder(r.Body).Decode(&card)
-
-	result := db.Create(&card)
-
-	if result.Error != nil {
-		log.Fatal(result.Error)
-	}
-
-	json.NewEncoder(w).Encode(card)
-}
-
-func UpdateCard(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-
-	db := Database.Instance
-
-	var card models.Card
-	result := db.First(&card, params["id"])
-
-	if result.Error != nil {
-		log.Fatal(result.Error)
-	}
-
-	json.NewDecoder(r.Body).Decode(&card)
-
-	result = db.Save(&card)
-
-	if result.Error != nil {
-		log.Fatal(result.Error)
-	}
-
-	json.NewEncoder(w).Encode(card)
-}
-
-func DeleteCard(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-
-	db := Database.Instance
-
-	var card models.Card
-	result := db.Delete(&card, params["id"])
-
-	if result.Error != nil {
-		log.Fatal(result.Error)
-	}
-
-	fmt.Fprintf(w, "Card supprimé")
 }
 
 // url: https://db.ygoprodeck.com/api/v7/cardinfo.php
@@ -104,6 +52,9 @@ type ExternalCardData struct {
 }
 
 func LoadCards(w http.ResponseWriter, r *http.Request) {
+	db := Database.MongoInstance
+	coll := db.Collection("Card")
+
 	response, apiError := http.Get("https://db.ygoprodeck.com/api/v7/cardinfo.php")
 
 	if apiError != nil {
@@ -122,14 +73,12 @@ func LoadCards(w http.ResponseWriter, r *http.Request) {
 		log.Panic(err.Error())
 	}
 
-	db := Database.Instance
+	for _, item := range data.Data {
+		fmt.Println(item.Name)
+		_, err := coll.InsertOne(context.TODO(), item)
 
-	for _, card := range data.Data {
-		result := db.Create(&card)
-
-		if result.Error != nil {
-			log.Fatal(result.Error)
+		if err != nil {
+			log.Panic(err.Error())
 		}
 	}
-
 }

@@ -28,7 +28,7 @@ func VerifyPassword(hashedPassword, password string) error {
 func GenerateToken(user models.User) (string, error) {
 	claims := jwt.MapClaims{}
 	claims["authorized"] = true
-	claims["user_id"] = user.ID
+	claims["email"] = user.Email
 	claims["exp"] = time.Now().Add(time.Hour * 24).Unix() //Token expires after 1 day
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
