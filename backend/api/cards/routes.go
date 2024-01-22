@@ -13,4 +13,5 @@ func RegisterRoutes(r *mux.Router) {
 	// s.Use(Authentication.TokenVerifyMiddleWare)
 	s.HandleFunc("/load", LoadCards).Methods("POST")
 	s.HandleFunc("", GetCards).Methods("GET")
+	s.HandleFunc("/{id}", GetCard).Methods("GET")
 }
