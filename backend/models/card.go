@@ -1,11 +1,14 @@
 package models
 
+type CardLang struct {
+	Name string `json:"name"`
+	Desc string `json:"desc"`
+}
+
 type Card struct {
 	Id            uint        `json:"id"`
-	Name          string      `json:"name"`
 	Type          string      `json:"Type"`
 	FrameType     string      `json:"frameType"`
-	Desc          string      `json:"desc"`
 	Race          string      `json:"race"`
 	Atk           int         `json:"atk"`
 	Def           int         `json:"def"`
@@ -14,4 +17,6 @@ type Card struct {
 	LinkVal       int         `json:"linkVal"`
 	YgoprodeckUrl string      `json:"ygoprodeck_url"`
 	Images        []CardImage `json:"card_images"`
+	Fr            CardLang    `json:"fr"`
+	En            CardLang    `json:"en"`
 }
