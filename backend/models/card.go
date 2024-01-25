@@ -1,12 +1,13 @@
 package models
 
 type CardLang struct {
-	Name string `json:"name"`
-	Desc string `json:"desc"`
+	Name       string `json:"name"`
+	EffectText string `json:"effectText"`
 }
 
 type Card struct {
 	Id            uint        `json:"id"`
+	Name          string      `json:"name"`
 	Type          string      `json:"Type"`
 	FrameType     string      `json:"frameType"`
 	Race          string      `json:"race"`

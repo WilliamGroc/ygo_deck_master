@@ -3,12 +3,15 @@ package cards
 import (
 	"context"
 	"encoding/json"
-	"io"
+	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
+	"time"
 	Database "ygocarddb/database"
 	models "ygocarddb/models"
+	Http "ygocarddb/utils"
 
 	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/bson"
@@ -60,38 +63,43 @@ func GetCard(w http.ResponseWriter, r *http.Request) {
 
 // url: https://db.ygoprodeck.com/api/v7/cardinfo.php
 
-type ExternalCardData struct {
-	Data    []models.Card `json:"data"`
-	Support struct {
-		URL  string `json:"url"`
-		Text string `json:"text"`
-	} `json:"support"`
+type JSONCardFile struct {
+	Data []models.Card `json:"data"`
 }
+
+type JSONIDMapping map[string][]int
 
 func LoadCards(w http.ResponseWriter, r *http.Request) {
 	db := Database.MongoInstance
 	coll := db.Collection("Card")
 
-	response, apiError := http.Get("https://db.ygoprodeck.com/api/v7/cardinfo.php")
-
-	if apiError != nil {
-		log.Fatal(apiError)
-	}
-
-	defer response.Body.Close()
-
-	body, err := io.ReadAll(response.Body)
-
+	content, err := os.ReadFile("../card_list.json")
 	if err != nil {
 		log.Panic(err.Error())
 	}
+	var data JSONCardFile
+	json.Unmarshal(content, &data)
 
-	var data ExternalCardData
+	contentId, errId := os.ReadFile("../en_id_mapping.json")
+	if errId != nil {
+		log.Panic(errId.Error())
+	}
+	var dataId JSONIDMapping
+	json.Unmarshal(contentId, &dataId)
 
-	json.Unmarshal(body, &data)
+	fmt.Println()
 
 	for _, item := range data.Data {
+
+		cardId := dataId[item.Name][0]
+
+		fmt.Println(item.Name, cardId)
+
+		Http.Get("https://db.ygorganization.com/data/card/"+strconv.FormatInt(int64(cardId), 10), &item)
+
 		_, errInsert := coll.InsertOne(context.TODO(), item)
+
+		time.Sleep(2 * time.Microsecond)
 
 		if errInsert != nil {
 			log.Panic(errInsert.Error())
