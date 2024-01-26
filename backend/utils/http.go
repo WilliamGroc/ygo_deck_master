@@ -2,12 +2,14 @@ package utils
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
 
+	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
@@ -38,7 +40,8 @@ func Pagination(r *http.Request) *options.FindOptions {
 	}
 	pageInt, err := strconv.Atoi(page)
 	if err != nil {
-		log.Fatal(err)
+		log.Panic(err)
+		pageInt = 1
 	}
 	skip := (pageInt - 1) * 20
 	findOptions.SetSkip(int64(skip)).SetLimit(20)
@@ -60,14 +63,19 @@ func SendImage(w http.ResponseWriter, filePath string) {
 	io.Copy(w, file)
 }
 
-func GetParamId(r *http.Request) int {
-	params := r.URL.Query().Get("id")
+func GetParamId(r *http.Request) (int, error) {
+	params := mux.Vars(r)
 
-	id, err := strconv.Atoi(params)
-
-	if err != nil {
-		log.Fatal(err)
+	if params["id"] == "" {
+		err := errors.New("no id provided")
+		return 0, err
 	}
 
-	return id
+	id, err := strconv.Atoi(params["id"])
+
+	if err != nil {
+		return 0, err
+	}
+
+	return id, nil
 }

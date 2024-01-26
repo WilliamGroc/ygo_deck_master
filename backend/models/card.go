@@ -8,7 +8,7 @@ type CardLang struct {
 type Card struct {
 	Id            uint        `json:"id"`
 	Name          string      `json:"name"`
-	Type          string      `json:"Type"`
+	Type          string      `json:"type"`
 	FrameType     string      `json:"frameType"`
 	Race          string      `json:"race"`
 	Atk           int         `json:"atk"`

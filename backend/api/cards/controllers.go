@@ -44,7 +44,7 @@ func GetCards(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
-		log.Fatal(err)
+		log.Panic(err)
 	}
 
 	var cards []models.Card
@@ -60,7 +60,10 @@ func GetCard(w http.ResponseWriter, r *http.Request) {
 	db := Database.MongoInstance
 	coll := db.Collection("Card")
 
-	id := Http.GetParamId(r)
+	id, err := Http.GetParamId(r)
+	if err != nil {
+		log.Panic(err)
+	}
 
 	var card models.Card
 	cursor := coll.FindOne(context.TODO(), bson.D{
@@ -68,7 +71,7 @@ func GetCard(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if cursor.Err() != nil {
-		log.Fatal(cursor.Err())
+		log.Panic(cursor.Err())
 	}
 
 	cursor.Decode(&card)
@@ -77,13 +80,19 @@ func GetCard(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetCardImage(w http.ResponseWriter, r *http.Request) {
-	id := Http.GetParamId(r)
+	id, err := Http.GetParamId(r)
+	if err != nil {
+		log.Panic(err)
+	}
 	filePath := "./assets/cards_small/" + strconv.Itoa(id) + ".jpg"
 	Http.SendImage(w, filePath)
 }
 
 func GetCardImageBig(w http.ResponseWriter, r *http.Request) {
-	id := Http.GetParamId(r)
+	id, err := Http.GetParamId(r)
+	if err != nil {
+		log.Panic(err)
+	}
 	filePath := "./assets/cards/" + strconv.Itoa(id) + ".jpg"
 	Http.SendImage(w, filePath)
 }

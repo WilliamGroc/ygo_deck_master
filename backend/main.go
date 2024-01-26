@@ -13,11 +13,11 @@ import (
 )
 
 func main() {
-	// Database.Connect()
 	Database.InitMongoDb()
 
 	r := mux.NewRouter()
 
+	r.Use(Middleware.CorsMiddleware)
 	r.Use(Middleware.LoggingMiddleware)
 	r.Use(Middleware.ContentTypeApplicationJsonMiddleware)
 
