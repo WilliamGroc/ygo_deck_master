@@ -20,4 +20,10 @@ type Card struct {
 	Images        []CardImage `json:"card_images"`
 	Fr            CardLang    `json:"fr"`
 	En            CardLang    `json:"en"`
+	De            CardLang    `json:"de"`
+	It            CardLang    `json:"it"`
+	Es            CardLang    `json:"es"`
+	Ja            CardLang    `json:"ja"`
+	Ko            CardLang    `json:"ko"`
+	Pt            CardLang    `json:"pt"`
 }

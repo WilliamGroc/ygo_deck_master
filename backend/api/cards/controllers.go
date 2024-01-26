@@ -3,25 +3,45 @@ package cards
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"strconv"
-	"time"
 	Database "ygocarddb/database"
 	models "ygocarddb/models"
 	Http "ygocarddb/utils"
 
-	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 func GetCards(w http.ResponseWriter, r *http.Request) {
 	db := Database.MongoInstance
 	coll := db.Collection("Card")
 
-	cursor, err := coll.Find(context.TODO(), bson.D{{}})
+	findOptions := Http.Pagination(r)
+
+	search := r.URL.Query().Get("search")
+	var cursor *mongo.Cursor
+	var err error
+
+	if search != "" {
+		findOptions.SetSort(bson.D{{Key: "name", Value: 1}})
+
+		filter := bson.D{
+			{Key: "$or", Value: []bson.D{
+				{{Key: "name", Value: bson.D{{Key: "$regex", Value: search}, {Key: "$options", Value: "i"}}}},
+				{{Key: "fr.name", Value: bson.D{{Key: "$regex", Value: search}, {Key: "$options", Value: "i"}}}},
+				{{Key: "de.name", Value: bson.D{{Key: "$regex", Value: search}, {Key: "$options", Value: "i"}}}},
+				{{Key: "it.name", Value: bson.D{{Key: "$regex", Value: search}, {Key: "$options", Value: "i"}}}},
+				{{Key: "pt.name", Value: bson.D{{Key: "$regex", Value: search}, {Key: "$options", Value: "i"}}}},
+				{{Key: "es.name", Value: bson.D{{Key: "$regex", Value: search}, {Key: "$options", Value: "i"}}}},
+			}},
+		}
+
+		cursor, err = coll.Find(context.TODO(), filter, findOptions)
+	} else {
+		cursor, err = coll.Find(context.TODO(), bson.D{{}}, findOptions)
+	}
 
 	if err != nil {
 		log.Fatal(err)
@@ -39,13 +59,8 @@ func GetCards(w http.ResponseWriter, r *http.Request) {
 func GetCard(w http.ResponseWriter, r *http.Request) {
 	db := Database.MongoInstance
 	coll := db.Collection("Card")
-	params := mux.Vars(r)
 
-	id, err := strconv.Atoi(params["id"])
-
-	if err != nil {
-		log.Fatal(err)
-	}
+	id := Http.GetParamId(r)
 
 	var card models.Card
 	cursor := coll.FindOne(context.TODO(), bson.D{
@@ -61,48 +76,14 @@ func GetCard(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(card)
 }
 
-// url: https://db.ygoprodeck.com/api/v7/cardinfo.php
-
-type JSONCardFile struct {
-	Data []models.Card `json:"data"`
+func GetCardImage(w http.ResponseWriter, r *http.Request) {
+	id := Http.GetParamId(r)
+	filePath := "./assets/cards_small/" + strconv.Itoa(id) + ".jpg"
+	Http.SendImage(w, filePath)
 }
 
-type JSONIDMapping map[string][]int
-
-func LoadCards(w http.ResponseWriter, r *http.Request) {
-	db := Database.MongoInstance
-	coll := db.Collection("Card")
-
-	content, err := os.ReadFile("../card_list.json")
-	if err != nil {
-		log.Panic(err.Error())
-	}
-	var data JSONCardFile
-	json.Unmarshal(content, &data)
-
-	contentId, errId := os.ReadFile("../en_id_mapping.json")
-	if errId != nil {
-		log.Panic(errId.Error())
-	}
-	var dataId JSONIDMapping
-	json.Unmarshal(contentId, &dataId)
-
-	fmt.Println()
-
-	for _, item := range data.Data {
-
-		cardId := dataId[item.Name][0]
-
-		fmt.Println(item.Name, cardId)
-
-		Http.Get("https://db.ygorganization.com/data/card/"+strconv.FormatInt(int64(cardId), 10), &item)
-
-		_, errInsert := coll.InsertOne(context.TODO(), item)
-
-		time.Sleep(2 * time.Microsecond)
-
-		if errInsert != nil {
-			log.Panic(errInsert.Error())
-		}
-	}
+func GetCardImageBig(w http.ResponseWriter, r *http.Request) {
+	id := Http.GetParamId(r)
+	filePath := "./assets/cards/" + strconv.Itoa(id) + ".jpg"
+	Http.SendImage(w, filePath)
 }
