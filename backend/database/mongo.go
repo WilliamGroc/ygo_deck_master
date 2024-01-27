@@ -11,7 +11,7 @@ import (
 var MongoInstance *mongo.Database
 
 func InitMongoDb() {
-	uri := "mongodb://localhost/?retryWrites=true&w=majority"
+	uri := "mongodb://192.168.48.1/?retryWrites=true&w=majority"
 	fmt.Println(uri)
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
 
