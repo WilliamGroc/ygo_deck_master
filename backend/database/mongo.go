@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -11,7 +12,7 @@ import (
 var MongoInstance *mongo.Database
 
 func InitMongoDb() {
-	uri := "mongodb://192.168.48.1/?retryWrites=true&w=majority"
+	uri := os.Getenv("MONGODB_URI")
 	fmt.Println(uri)
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
 

@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
 
 	Cards "ygocarddb/api/cards"
 	Users "ygocarddb/api/users"
@@ -13,6 +14,11 @@ import (
 )
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
 	Database.InitMongoDb()
 
 	r := mux.NewRouter()
