@@ -1,17 +1,29 @@
 "use client";
 
-import type { LoaderFunction, MetaFunction } from "@remix-run/node";
-import { json, useLoaderData, useNavigate, useSearchParams } from "@remix-run/react";
+import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
+import { Link, useLoaderData, useNavigate, useSearchParams } from "@remix-run/react";
 import axios from "axios";
 import { CardTile } from "~/components/cardTile";
 import { Card } from "~/models/card.model";
 import styles from "../styles/_index.module.css";
 import { useState } from "react";
+import { langCookie } from "~/utils/cookie.server";
+import { Pagination } from "~/components/pagination";
 
-export const loader: LoaderFunction = async ({ request }) => {
-  const search = new URL(request.url).searchParams.get('search');
-  const { data } = await axios.get<Card[]>("http://localhost:8080/cards", {params: {search}});
-  return json({ data });
+export async function loader({ request }: LoaderFunctionArgs) {
+  const searchParams = new URL(request.url).searchParams;
+
+  const search = searchParams.get('search');
+  const page = Number(searchParams.get('page') || 1);
+  const type = searchParams.get('type');
+  const attribute = searchParams.get('attribute');
+  const level = searchParams.get('level') || '';
+
+  const cookie = request.headers.get('Cookie');
+  const lang = await langCookie.parse(cookie) || 'en';
+
+  const { data: { data, total, filters } } = await axios.get<{ data: Card[], total: number, filters: any }>("http://localhost:8080/cards", { params: { search, page, type, level, attribute } });
+  return { data, lang, total, filters };
 }
 
 export const meta: MetaFunction = () => {
@@ -22,29 +34,76 @@ export const meta: MetaFunction = () => {
 };
 
 export default function Index() {
-  const { data } = useLoaderData<{ data: Card[] }>();
+  const { data, lang, total, filters } = useLoaderData<ReturnType<typeof loader>>();
 
-  const [searchParams] = useSearchParams({ search: '' });
+  const [searchParams] = useSearchParams({ search: '', page: '', type: '', level: '', attribute: '' });
   const navigate = useNavigate();
 
   const [search, setSearch] = useState(searchParams.get('search') || '');
 
-  const handleSearch = () => {
-    navigate(`?search=${search}`);
+  const handlerFilterChange = (filterName: string) => {
+    return (value: number | string) => {
+      const queryParams = new URLSearchParams();
+      queryParams.set('search', search);
+      queryParams.set('page', String(1));
+      queryParams.set('type', searchParams.get('type') || '');
+      queryParams.set('level', searchParams.get('level') || '');
+      queryParams.set('attribute', searchParams.get('attribute') || '');
+      queryParams.set(filterName, value.toString());
+      navigate(`?${queryParams.toString()}`);
+    }
   }
 
   return (
     <div>
       <div className="title">Card list</div>
-      <div className="flex">
-        <input type="text" placeholder="Search" onInput={e => setSearch(e.currentTarget.value)} />
-        <div>
-          <button onClick={handleSearch}>Search</button>
+      <div className="flex items-center mb-4">
+        <div className="flex w-1/3">
+          <input type="text" placeholder="Search" onInput={e => setSearch(e.currentTarget.value)} onKeyUp={(e) => { if (e.key === "Enter") handlerFilterChange('search')(search); }} />
+          <button className="ml-4" onClick={() => handlerFilterChange('search')(search)}>Search</button>
+        </div>
+        <div className="ml-4 flex">
+          <div>
+            <div>
+              Types
+              <select className="ml-4 capitalize" value={searchParams.get('type') || ''} onChange={(e) => handlerFilterChange('type')(e.target.value)}>
+                <option value="">All</option>
+                {filters?.types.sort().map((type: string) => (
+                  <option key={type} value={type} className="capitalize">{type}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              Level
+              <select className="ml-4" value={searchParams.get('level') || ''} onChange={(e) => handlerFilterChange('level')(e.target.value)}>
+                <option value="">All</option>
+                {Array.from(Array(14).keys()).map((level: number) => (
+                  <option key={level} value={level}>{level}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div>
+          <div>
+              Attributes
+              <select className="ml-4 capitalize" value={searchParams.get('attribute') || ''} onChange={(e) => handlerFilterChange('attribute')(e.target.value)}>
+                <option value="">All</option>
+                {filters?.attributes.filter(Boolean).sort().map((type: string) => (
+                  <option key={type} value={type} className="capitalize">{type}</option>
+                ))}
+              </select>
+            </div>
+          </div>
         </div>
       </div>
+      <div className="mb-5">
+        <Pagination total={total} perPage={20} currentPage={Number(searchParams.get('page')) || 1} onPageChange={handlerFilterChange('page')} />
+      </div>
       <div className={styles['card-list-container']}>
-        {data.map((card) => (
-          <CardTile key={card.id} card={card} />
+        {data?.map((card) => (
+          <Link to={`/cards/${card.id}`} key={card.id}>
+            <CardTile key={card.id} card={card} lang={lang} />
+          </Link>
         ))}
       </div>
     </div>

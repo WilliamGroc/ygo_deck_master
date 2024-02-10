@@ -1,5 +1,5 @@
 import { cssBundleHref } from "@remix-run/css-bundle";
-import type { LinksFunction } from "@remix-run/node";
+import type { LinksFunction, LoaderFunctionArgs } from "@remix-run/node";
 import {
   Links,
   LiveReload,
@@ -7,11 +7,16 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  redirect,
+  useFetcher,
+  useLoaderData,
 } from "@remix-run/react";
 
 import tailwind from "./tailwind.css";
 import styles from "./styles.css";
 import { Navbar } from "./components/navbar";
+import { langCookie } from "./utils/cookie.server";
+import { Lang } from "./const/lang";
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: tailwind },
@@ -19,9 +24,28 @@ export const links: LinksFunction = () => [
   ...(cssBundleHref ? [{ rel: "stylesheet", href: cssBundleHref }] : []),
 ];
 
+export async function loader({ request }: LoaderFunctionArgs) {
+  const cookie = request.headers.get('Cookie');
+  const lang = await langCookie.parse(cookie) || 'en';
+  return { lang };
+}
+
+export async function action({ request }: LoaderFunctionArgs) {
+  const data = await request.formData();
+  return redirect(data.get('redirectTo') as string, { headers: { 'Set-Cookie': await langCookie.serialize(data.get('lang')) } });
+}
+
 export default function App() {
+  const { lang } = useLoaderData<ReturnType<typeof loader>>();
+  const fetcher = useFetcher();
+
+  const setLang = async (lang: Lang) => {
+    console.log('setLang', lang);
+    fetcher.submit({ lang, redirectTo: location.href }, { method: 'POST' });
+  }
+
   return (
-    <html lang="en">
+    <html lang={lang}>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -29,7 +53,7 @@ export default function App() {
         <Links />
       </head>
       <body>
-        <Navbar />
+        <Navbar setLang={setLang} currentLang={lang} />
         <div className="p-3">
           <Outlet />
         </div>

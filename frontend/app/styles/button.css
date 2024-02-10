@@ -1,0 +1,39 @@
+button {
+  background-color: #4c6faf;
+  color: white;
+  padding: 6px 8px;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+
+  &:hover {
+    background-color: #3e5f8f;
+  }
+
+  &:active {
+    background-color: #2e4f7f;
+  }
+
+  &:disabled {
+    background-color: #b8b8b8;
+    cursor: not-allowed;
+  }
+
+  &.secondary {
+    background-color: #f2f2f2;
+    color: #4c6faf;
+
+    &:hover {
+      background-color: #e2e2e2;
+    }
+
+    &:active {
+      background-color: #d2d2d2;
+    }
+
+    &:disabled {
+      background-color: #b8b8b8;
+      color: #4c6faf;
+    }
+  }
+}

@@ -1,31 +1,13 @@
+@import './styles/button.css';
+@import './styles/input.css';
+
 .title{
-    font-size: 20px;
-    font-weight: bold;
-    color: #000000;
-    margin-bottom: 10px;
+  font-size: 20px;
+  font-weight: bold;
+  color: #000000;
+  margin-bottom: 10px;
 }
 
 body{
-    background-color: #f2f2f2;
-}
-
-input {
-    width: 100%;
-    height: 40px;
-    border-radius: 5px;
-    border: 1px solid #d9d9d9;
-    padding: 0 10px;
-    margin-bottom: 10px;
-}
-
-button {
-    width: 100%;
-    height: 40px;
-    border-radius: 5px;
-    border: 1px solid #d9d9d9;
-    padding: 0 10px;
-    margin-bottom: 10px;
-    background-color: #4CAF50;
-    color: white;
-    font-weight: bold;
+  background-color: #f2f2f2;
 }
