@@ -20,7 +20,7 @@ func HashPassword(password string) ([]byte, error) {
 }
 
 // // VerifyPassword compare hashed password with string
-func VerifyPassword(hashedPassword, password string) error {
+func VerifyPassword(hashedPassword string, password string) error {
 	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 }
 
@@ -52,7 +52,7 @@ func TokenValid(r *http.Request) error {
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		Pretty(claims)
 	}
-	
+
 	return nil
 }
 

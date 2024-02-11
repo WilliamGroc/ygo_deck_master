@@ -15,7 +15,6 @@ func RegisterRoutes(r *mux.Router) {
 	secure := s.PathPrefix("").Subrouter()
 	secure.Use(Authentication.TokenVerifyMiddleWare)
 
-	secure.HandleFunc("", GetUsers).Methods("GET")
 	secure.HandleFunc("/{id}", GetUser).Methods("GET")
 	secure.HandleFunc("/{id}", UpdateUser).Methods("PUT")
 	secure.HandleFunc("/{id}", DeleteUser).Methods("DELETE")

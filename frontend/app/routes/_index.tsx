@@ -57,15 +57,17 @@ export default function Index() {
   return (
     <div>
       <div className="title">Card list</div>
-      <div className="flex items-center mb-4">
-        <div className="flex w-1/3">
+      <div className="flex items-stretch mb-4">
+        <div className="flex w-1/3 h-full mt-5">
           <input type="text" placeholder="Search" onInput={e => setSearch(e.currentTarget.value)} onKeyUp={(e) => { if (e.key === "Enter") handlerFilterChange('search')(search); }} />
           <button className="ml-4" onClick={() => handlerFilterChange('search')(search)}>Search</button>
         </div>
-        <div className="ml-4 flex">
-          <div>
+        <div className="ml-4 flex w-full">
+          <div className="w-1/4">
             <div>
-              Types
+              <label htmlFor="type">
+                Types
+              </label>
               <select className="ml-4 capitalize" value={searchParams.get('type') || ''} onChange={(e) => handlerFilterChange('type')(e.target.value)}>
                 <option value="">All</option>
                 {filters?.types.sort().map((type: string) => (
@@ -74,7 +76,9 @@ export default function Index() {
               </select>
             </div>
             <div>
-              Level
+              <label htmlFor="level">
+                Level
+              </label>
               <select className="ml-4" value={searchParams.get('level') || ''} onChange={(e) => handlerFilterChange('level')(e.target.value)}>
                 <option value="">All</option>
                 {Array.from(Array(14).keys()).map((level: number) => (
@@ -83,9 +87,11 @@ export default function Index() {
               </select>
             </div>
           </div>
-          <div>
-          <div>
-              Attributes
+          <div className="w-1/4 ml-4">
+            <div>
+              <label htmlFor="attribute">
+                Attributes
+              </label>
               <select className="ml-4 capitalize" value={searchParams.get('attribute') || ''} onChange={(e) => handlerFilterChange('attribute')(e.target.value)}>
                 <option value="">All</option>
                 {filters?.attributes.filter(Boolean).sort().map((type: string) => (

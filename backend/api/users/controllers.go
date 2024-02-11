@@ -2,62 +2,81 @@ package users
 
 import (
 	"encoding/json"
+	"fmt"
+	"log"
 	"net/http"
+	Authentication "ygocarddb/authentication"
+	Database "ygocarddb/database"
+	models "ygocarddb/models"
+
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 // Implement login controller
 func Login(w http.ResponseWriter, r *http.Request) {
-	// var userBody models.User
-	// json.NewDecoder(r.Body).Decode(&userBody)
+	db := Database.MongoInstance
+	coll := db.Collection("User")
 
-	// var user models.User
-	// result := Database.Instance.First(&user, "username = ?", userBody.Username)
+	var user models.User
+	json.NewDecoder(r.Body).Decode(&user)
 
-	// if result.Error != nil {
-	// 	log.Panic(result.Error)
-	// }
+	fmt.Println(user)
 
-	// err := Authentication.VerifyPassword(user.Password, userBody.Password)
+	var result models.User
+	err := coll.FindOne(r.Context(), bson.D{{Key: "email", Value: user.Email}}).Decode(&result)
 
-	// if err != nil {
-	// 	log.Panic(err)
-	// }
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode("User not found")
+		return
+	}
 
-	// token, err := Authentication.GenerateToken(user)
+	err = Authentication.VerifyPassword(result.Password, user.Password)
 
-	// if err != nil {
-	// 	log.Panic(err)
-	// }
+	if err != nil {
+		w.WriteHeader(http.StatusForbidden)
+		json.NewEncoder(w).Encode("Password is incorrect")
+		return
+	}
 
-	// json.NewEncoder(w).Encode(token)
+	token, err := Authentication.GenerateToken(result)
+
+	if err != nil {
+		log.Panic(err)
+	}
+
+	response := map[string]string{
+		"token": token,
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
 }
 
 // Implement register controller
 func Register(w http.ResponseWriter, r *http.Request) {
-	// var user models.User
-	// json.NewDecoder(r.Body).Decode(&user)
+	db := Database.MongoInstance
+	coll := db.Collection("User")
 
-	// hash, err := Authentication.HashPassword(user.Password)
+	var user models.User
+	json.NewDecoder(r.Body).Decode(&user)
 
-	// if err != nil {
-	// 	log.Panic(err)
-	// }
+	hash, err := Authentication.HashPassword(user.Password)
 
-	// user.Password = string(hash)
+	if err != nil {
+		log.Panic(err)
+	}
 
-	// result := Database.Instance.Create(&user)
+	user.Password = string(hash)
 
-	// if result.Error != nil {
-	// 	log.Panic(result.Error)
-	// }
+	_, error := coll.InsertOne(r.Context(), user)
 
-	// json.NewEncoder(w).Encode(user)
-}
+	if error != nil {
+		log.Panic(error)
+	}
 
-func GetUsers(w http.ResponseWriter, r *http.Request) {
-	// var users []models.User
-	// Database.Instance.Select("id", "name", "username", "email").Find(&users)
-	// json.NewEncoder(w).Encode(users)
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(true)
 }
 
 func GetUser(w http.ResponseWriter, r *http.Request) {

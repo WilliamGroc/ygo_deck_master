@@ -1,5 +1,6 @@
 import { Link } from "@remix-run/react";
 import { Lang, LangEnum } from "~/const/lang";
+import styles from "./styles.module.css";
 
 type Props = {
   setLang: (lang: Lang) => void,
@@ -8,12 +9,15 @@ type Props = {
 
 export function Navbar({ setLang, currentLang }: Props) {
   return (
-    <div className="flex flex-row justify-between items-center p-4 bg-gray-200">
+    <div className={styles.navbar}>
       <div className="flex items-center">
         <div className="text-xl font-bold">Yugioh deck master</div>
         <div className="flex flex-row space-x-2 ml-6">
           <Link to="/" className="btn btn-secondary">
             Card list
+          </Link>
+          <Link to="/login" className="btn btn-secondary">
+            Login
           </Link>
         </div>
       </div>
