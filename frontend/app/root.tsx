@@ -17,6 +17,8 @@ import styles from "./styles.css";
 import { Navbar } from "./components/navbar";
 import { langCookie } from "./utils/cookie.server";
 import { Lang } from "./const/lang";
+import { getSession } from "./utils/session.server";
+import axios from "axios";
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: tailwind },
@@ -27,7 +29,16 @@ export const links: LinksFunction = () => [
 export async function loader({ request }: LoaderFunctionArgs) {
   const cookie = request.headers.get('Cookie');
   const lang = await langCookie.parse(cookie) || 'en';
-  return { lang };
+
+  const session = await getSession(
+    request.headers.get("Cookie")
+  );
+
+  if (session.has("token")) {
+    axios.defaults.headers.common['Authorization'] = 'Bearer ' + session.get("token");
+  }
+
+  return { lang, isAuthenticatied: session.has("token") };
 }
 
 export async function action({ request }: LoaderFunctionArgs) {
@@ -36,7 +47,7 @@ export async function action({ request }: LoaderFunctionArgs) {
 }
 
 export default function App() {
-  const { lang } = useLoaderData<ReturnType<typeof loader>>();
+  const { lang, isAuthenticatied } = useLoaderData<ReturnType<typeof loader>>();
   const fetcher = useFetcher();
 
   const setLang = async (lang: Lang) => {
@@ -53,7 +64,7 @@ export default function App() {
         <Links />
       </head>
       <body>
-        <Navbar setLang={setLang} currentLang={lang} />
+        <Navbar setLang={setLang} currentLang={lang} isAuthenticatied={isAuthenticatied} />
         <div className="p-3">
           <Outlet />
         </div>

@@ -1,25 +1,56 @@
-import { ActionFunctionArgs } from "@remix-run/node";
+import { ActionFunctionArgs, LoaderFunctionArgs, json, redirect } from "@remix-run/node";
 import { Form, Link } from "@remix-run/react";
+import { axiosInstance } from "~/utils/axios.server";
+import { commitSession, getSession } from "~/utils/session.server";
+
+export async function loader({ request }: LoaderFunctionArgs) {
+  const session = await getSession(
+    request.headers.get("Cookie")
+  );
+
+  if (session.has("token")) {
+    return redirect("/");
+  }
+
+  const data = { error: session.get("error") };
+
+  return json(data, {
+    headers: {
+      "Set-Cookie": await commitSession(session),
+    },
+  });
+}
 
 export async function action({ request }: ActionFunctionArgs) {
+  const session = await getSession(
+    request.headers.get("Cookie")
+  );
   const formData = await request.formData();
 
   const email = formData.get("email");
   const password = formData.get("password");
 
-  const response = await fetch("http://localhost:8080/users/register", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ email, password }),
-  });
+  try {
+    const { data } = await axiosInstance.post("/users/register", { email, password });
 
-  if (response.ok) {
-    return response;
+    session.set("token", data.token);
+
+    return redirect("/", {
+      headers: {
+        "Set-Cookie": await commitSession(session),
+      },
+    });
   }
+  catch (error) {
+    session.flash("error", "Registration failed. Please try again.");
 
-  return new Response("Failed to register", { status: 400 });
+    return redirect("/register", {
+      headers: {
+        "Set-Cookie": await commitSession(session),
+      },
+    });
+
+  }
 }
 
 export default function RegisterPage() {

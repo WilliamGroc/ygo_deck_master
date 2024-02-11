@@ -2,7 +2,6 @@ package users
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	Authentication "ygocarddb/authentication"
@@ -19,8 +18,6 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	var user models.User
 	json.NewDecoder(r.Body).Decode(&user)
-
-	fmt.Println(user)
 
 	var result models.User
 	err := coll.FindOne(r.Context(), bson.D{{Key: "email", Value: user.Email}}).Decode(&result)
@@ -69,14 +66,26 @@ func Register(w http.ResponseWriter, r *http.Request) {
 
 	user.Password = string(hash)
 
-	_, error := coll.InsertOne(r.Context(), user)
+	result, error := coll.InsertOne(r.Context(), user)
 
 	if error != nil {
 		log.Panic(error)
 	}
 
+	coll.FindOne(r.Context(), bson.D{{Key: "_id", Value: result.InsertedID}}).Decode(&user)
+
+	token, err := Authentication.GenerateToken(user)
+
+	if err != nil {
+		log.Panic(err)
+	}
+
+	response := map[string]string{
+		"token": token,
+	}
+
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(true)
+	json.NewEncoder(w).Encode(response)
 }
 
 func GetUser(w http.ResponseWriter, r *http.Request) {

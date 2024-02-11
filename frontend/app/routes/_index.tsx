@@ -2,13 +2,13 @@
 
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
 import { Link, useLoaderData, useNavigate, useSearchParams } from "@remix-run/react";
-import axios from "axios";
 import { CardTile } from "~/components/cardTile";
 import { Card } from "~/models/card.model";
 import styles from "../styles/_index.module.css";
 import { useState } from "react";
 import { langCookie } from "~/utils/cookie.server";
 import { Pagination } from "~/components/pagination";
+import { axiosInstance } from "~/utils/axios.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const searchParams = new URL(request.url).searchParams;
@@ -22,7 +22,15 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const cookie = request.headers.get('Cookie');
   const lang = await langCookie.parse(cookie) || 'en';
 
-  const { data: { data, total, filters } } = await axios.get<{ data: Card[], total: number, filters: any }>("http://localhost:8080/cards", { params: { search, page, type, level, attribute } });
+  const { data: { data, total, filters } } = await axiosInstance.get<{ data: Card[], total: number, filters: any }>("/cards", {
+    params: {
+      search,
+      page,
+      type,
+      level,
+      attribute
+    }
+  });
   return { data, lang, total, filters };
 }
 

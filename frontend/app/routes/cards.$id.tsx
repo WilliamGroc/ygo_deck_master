@@ -1,16 +1,16 @@
 import { LoaderFunctionArgs } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
-import axios from "axios";
 import { useEffect, useMemo, useState } from "react";
 import { Lang } from "~/const/lang";
 import { Card } from "~/models/card.model";
+import { axiosInstance } from "~/utils/axios.server";
 import { langCookie } from "~/utils/cookie.server";
 
 export async function loader({ params, request }: LoaderFunctionArgs) {
   const cookie = request.headers.get('Cookie');
   const lang: Lang = await langCookie.parse(cookie) || 'en';
 
-  const { data } = await axios.get<Card>(`http://localhost:8080/cards/${params.id}`);
+  const { data } = await axiosInstance.get<Card>(`/cards/${params.id}`);
   return { card: data, lang };
 }
 

@@ -1,6 +1,25 @@
-import { ActionFunctionArgs } from "@remix-run/node";
+import { ActionFunctionArgs, LoaderFunctionArgs, json, redirect } from "@remix-run/node";
 import { Form, Link } from "@remix-run/react";
-import axios from "axios";
+import { axiosInstance } from "~/utils/axios.server";
+import { commitSession, getSession } from "~/utils/session.server";
+
+export async function loader({ request }: LoaderFunctionArgs) {
+  const session = await getSession(
+    request.headers.get("Cookie")
+  );
+
+  if (session.has("userId")) {
+    return redirect("/");
+  }
+
+  const data = { error: session.get("error") };
+
+  return json(data, {
+    headers: {
+      "Set-Cookie": await commitSession(session),
+    },
+  });
+}
 
 export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData();
@@ -8,12 +27,28 @@ export async function action({ request }: ActionFunctionArgs) {
   const email = formData.get("email");
   const password = formData.get("password");
 
+  const session = await getSession(
+    request.headers.get("Cookie")
+  );
+
   try {
-    const { data } = await axios.post("http://localhost:8080/users/login", { email, password });
-    console.log({ data });
-    return { token: data.token };
+    const { data } = await axiosInstance.post("/users/login", { email, password });
+    session.set("token", data.token);
+
+    return redirect("/",
+      {
+        headers: {
+          "Set-Cookie": await commitSession(session),
+        }
+      });
   } catch (error) {
-    return new Response("Failed to login", { status: 400 });
+    session.flash("error", "Invalid username/password");
+
+    return redirect("/login", {
+      headers: {
+        "Set-Cookie": await commitSession(session),
+      },
+    });
   }
 }
 

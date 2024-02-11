@@ -14,6 +14,7 @@ func RegisterRoutes(r *mux.Router) {
 	s.HandleFunc("/{id}/image", GetCardImage).Methods("GET")
 	s.HandleFunc("/{id}/image/big", GetCardImageBig).Methods("GET")
 
-	s.Use(Authentication.TokenVerifyMiddleWare)
-	s.HandleFunc("/load", LoadCards).Methods("POST")
+	secure := s.PathPrefix("").Subrouter()
+	secure.Use(Authentication.TokenVerifyMiddleWare)
+	secure.HandleFunc("/load", LoadCards).Methods("POST")
 }

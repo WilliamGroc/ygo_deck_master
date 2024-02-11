@@ -4,10 +4,11 @@ import styles from "./styles.module.css";
 
 type Props = {
   setLang: (lang: Lang) => void,
-  currentLang: Lang
+  currentLang: Lang,
+  isAuthenticatied: boolean
 }
 
-export function Navbar({ setLang, currentLang }: Props) {
+export function Navbar({ setLang, currentLang, isAuthenticatied }: Props) {
   return (
     <div className={styles.navbar}>
       <div className="flex items-center">
@@ -16,9 +17,13 @@ export function Navbar({ setLang, currentLang }: Props) {
           <Link to="/" className="btn btn-secondary">
             Card list
           </Link>
-          <Link to="/login" className="btn btn-secondary">
-            Login
+          {isAuthenticatied ? <Link to="/deck" className="btn btn-secondary">
+            Deck
           </Link>
+            : <Link to="/login" className="btn btn-secondary">
+              Login
+            </Link>
+          }
         </div>
       </div>
       <div>
