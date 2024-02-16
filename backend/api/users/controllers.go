@@ -4,16 +4,16 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	Authentication "ygocarddb/authentication"
-	Database "ygocarddb/database"
-	models "ygocarddb/models"
+	"ygocarddb/authentication"
+	"ygocarddb/database"
+	"ygocarddb/models"
 
 	"go.mongodb.org/mongo-driver/bson"
 )
 
 // Implement login controller
 func Login(w http.ResponseWriter, r *http.Request) {
-	db := Database.MongoInstance
+	db := database.MongoInstance
 	coll := db.Collection("User")
 
 	var user models.User
@@ -28,7 +28,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = Authentication.VerifyPassword(result.Password, user.Password)
+	err = authentication.VerifyPassword(result.Password, user.Password)
 
 	if err != nil {
 		w.WriteHeader(http.StatusForbidden)
@@ -36,7 +36,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := Authentication.GenerateToken(result)
+	token, err := authentication.GenerateToken(result)
 
 	if err != nil {
 		log.Panic(err)
@@ -52,13 +52,13 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 // Implement register controller
 func Register(w http.ResponseWriter, r *http.Request) {
-	db := Database.MongoInstance
+	db := database.MongoInstance
 	coll := db.Collection("User")
 
 	var user models.User
 	json.NewDecoder(r.Body).Decode(&user)
 
-	hash, err := Authentication.HashPassword(user.Password)
+	hash, err := authentication.HashPassword(user.Password)
 
 	if err != nil {
 		log.Panic(err)
@@ -74,7 +74,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 
 	coll.FindOne(r.Context(), bson.D{{Key: "_id", Value: result.InsertedID}}).Decode(&user)
 
-	token, err := Authentication.GenerateToken(user)
+	token, err := authentication.GenerateToken(user)
 
 	if err != nil {
 		log.Panic(err)
@@ -91,7 +91,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 func GetUser(w http.ResponseWriter, r *http.Request) {
 	// params := mux.Vars(r)
 	// var user models.User
-	// Database.Instance.Select("id", "name", "username", "email").First(&user, params["id"])
+	// database.Instance.Select("id", "name", "username", "email").First(&user, params["id"])
 	// json.NewEncoder(w).Encode(user)
 }
 
@@ -100,7 +100,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 
 	// var user models.User
 
-	// result := Database.Instance.First(&user, params["id"])
+	// result := database.Instance.First(&user, params["id"])
 
 	// if result.Error != nil {
 	// 	log.Panic(result.Error)
@@ -108,7 +108,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 
 	// json.NewDecoder(r.Body).Decode(&user)
 
-	// result = Database.Instance.Save(&user)
+	// result = database.Instance.Save(&user)
 
 	// if result.Error != nil {
 	// 	log.Panic(result.Error)
@@ -120,6 +120,6 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 func DeleteUser(w http.ResponseWriter, r *http.Request) {
 	// params := mux.Vars(r)
 
-	// Database.Instance.Delete(&models.User{}, params["id"])
+	// database.Instance.Delete(&models.User{}, params["id"])
 	json.NewEncoder(w).Encode("User deleted successfully")
 }

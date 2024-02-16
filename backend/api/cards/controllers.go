@@ -1,14 +1,13 @@
 package cards
 
 import (
-	"context"
 	"encoding/json"
 	"log"
 	"net/http"
 	"strconv"
-	Database "ygocarddb/database"
-	models "ygocarddb/models"
-	Http "ygocarddb/utils"
+	"ygocarddb/database"
+	"ygocarddb/models"
+	"ygocarddb/utils"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -25,7 +24,7 @@ type ColumnList struct {
 	List []string `bson:"list"`
 }
 
-func getFilters(coll *mongo.Collection, column string) ColumnList {
+func getFilters(coll *mongo.Collection, column string, r *http.Request) ColumnList {
 	// Aggregate collection to get type list
 	pipeline := mongo.Pipeline{
 		bson.D{{Key: "$group", Value: bson.D{
@@ -36,13 +35,13 @@ func getFilters(coll *mongo.Collection, column string) ColumnList {
 		}}},
 	}
 
-	cursorType, err := coll.Aggregate(context.TODO(), pipeline)
+	cursorType, err := coll.Aggregate(r.Context(), pipeline)
 	if err != nil {
 		log.Panic(err)
 	}
 
 	var list []ColumnList
-	if err = cursorType.All(context.TODO(), &list); err != nil {
+	if err = cursorType.All(r.Context(), &list); err != nil {
 		log.Panic(err)
 	}
 
@@ -50,10 +49,10 @@ func getFilters(coll *mongo.Collection, column string) ColumnList {
 }
 
 func GetCards(w http.ResponseWriter, r *http.Request) {
-	db := Database.MongoInstance
+	db := database.MongoInstance
 	coll := db.Collection("Card")
 
-	findOptions := Http.Pagination(r)
+	findOptions := utils.Pagination(r)
 
 	search := r.URL.Query().Get("search")
 	card_type := r.URL.Query().Get("type")
@@ -95,25 +94,25 @@ func GetCards(w http.ResponseWriter, r *http.Request) {
 		filter = append(filter, bson.E{Key: "level", Value: level})
 	}
 
-	cursor, err = coll.Find(context.TODO(), filter, findOptions)
+	cursor, err = coll.Find(r.Context(), filter, findOptions)
 	if err != nil {
 		log.Panic(err)
 	}
 
-	total, err := coll.CountDocuments(context.TODO(), filter)
+	total, err := coll.CountDocuments(r.Context(), filter)
 	if err != nil {
 		log.Panic(err)
 	}
 
 	var cards []models.Card
 
-	if err = cursor.All(context.TODO(), &cards); err != nil {
+	if err = cursor.All(r.Context(), &cards); err != nil {
 		panic(err)
 	}
 
 	// Get filters
-	types := getFilters(coll, "frametype")
-	attributes := getFilters(coll, "attribute")
+	types := getFilters(coll, "frametype", r)
+	attributes := getFilters(coll, "attribute", r)
 
 	// Convert cards to []interface{}
 	var data []interface{}
@@ -133,16 +132,16 @@ func GetCards(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetCard(w http.ResponseWriter, r *http.Request) {
-	db := Database.MongoInstance
+	db := database.MongoInstance
 	coll := db.Collection("Card")
 
-	id, err := Http.GetParamId(r)
+	id, err := utils.GetParamId(r)
 	if err != nil {
 		log.Panic(err)
 	}
 
 	var card models.Card
-	cursor := coll.FindOne(context.TODO(), bson.D{
+	cursor := coll.FindOne(r.Context(), bson.D{
 		{Key: "id", Value: id},
 	})
 
@@ -156,19 +155,19 @@ func GetCard(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetCardImage(w http.ResponseWriter, r *http.Request) {
-	id, err := Http.GetParamId(r)
+	id, err := utils.GetParamId(r)
 	if err != nil {
 		log.Panic(err)
 	}
 	filePath := "./assets/cards_small/" + strconv.Itoa(id) + ".jpg"
-	Http.SendImage(w, filePath)
+	utils.SendImage(w, filePath)
 }
 
 func GetCardImageBig(w http.ResponseWriter, r *http.Request) {
-	id, err := Http.GetParamId(r)
+	id, err := utils.GetParamId(r)
 	if err != nil {
 		log.Panic(err)
 	}
 	filePath := "./assets/cards/" + strconv.Itoa(id) + ".jpg"
-	Http.SendImage(w, filePath)
+	utils.SendImage(w, filePath)
 }

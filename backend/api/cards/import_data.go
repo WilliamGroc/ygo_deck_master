@@ -9,9 +9,9 @@ import (
 	"os"
 	"strconv"
 	"time"
-	Database "ygocarddb/database"
-	models "ygocarddb/models"
-	Http "ygocarddb/utils"
+	"ygocarddb/database"
+	"ygocarddb/models"
+	"ygocarddb/utils"
 )
 
 // url: https://db.ygoprodeck.com/api/v7/cardinfo.php
@@ -43,7 +43,7 @@ type CardData struct {
 }
 
 func LoadCards(w http.ResponseWriter, r *http.Request) {
-	db := Database.MongoInstance
+	db := database.MongoInstance
 	coll := db.Collection("Card")
 
 	content, err := os.ReadFile("../card_list.json")
@@ -86,7 +86,7 @@ func LoadCards(w http.ResponseWriter, r *http.Request) {
 
 			var cardWithTranslation CardData
 
-			Http.Get("https://db.ygorganization.com/data/card/"+strconv.FormatInt(int64(cardId), 10), &cardWithTranslation)
+			utils.Get("https://db.ygorganization.com/data/card/"+strconv.FormatInt(int64(cardId), 10), &cardWithTranslation)
 
 			cardToInsert.Fr = cardWithTranslation.CardData.Fr
 			cardToInsert.En = cardWithTranslation.CardData.En

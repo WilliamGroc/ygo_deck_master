@@ -1,7 +1,13 @@
 package models
 
+import "go.mongodb.org/mongo-driver/bson/primitive"
+
 type Deck struct {
-	Name   string `json:"name"`
-	Cards  []Card `json:"cards"`
-	UserId uint   `json:"user_id"`
+	Id        primitive.ObjectID `bson:"_id" json:"id"`
+	Name      string             `json:"name"`
+	Cards     []uint             `json:"cards"`
+	CreatedBy primitive.ObjectID `bson:"createdby" json:"createdBy"`
+	CreatedAt string             `json:"createdAt"`
+	UpdatedAt string             `json:"updatedAt"`
+	IsPublic  bool               `json:"isPublic"`
 }

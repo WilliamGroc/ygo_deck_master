@@ -3,13 +3,16 @@ package utils
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
+	"ygocarddb/authentication"
 
 	"github.com/gorilla/mux"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
@@ -75,6 +78,25 @@ func GetParamId(r *http.Request) (int, error) {
 
 	if err != nil {
 		return 0, err
+	}
+
+	return id, nil
+}
+
+func GetUserId(r *http.Request) (primitive.ObjectID, error) {
+	token := authentication.ExtractToken(r)
+
+	claims, err := authentication.ParseToken(token)
+
+	if err != nil {
+		return primitive.ObjectID{}, err
+	}
+
+	fmt.Println(claims["id"])
+
+	id, err := primitive.ObjectIDFromHex(claims["id"].(string))
+	if err != nil {
+		return primitive.ObjectID{}, err
 	}
 
 	return id, nil

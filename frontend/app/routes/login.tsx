@@ -33,6 +33,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   try {
     const { data } = await axiosInstance.post("/users/login", { email, password });
+    console.log(data);
     session.set("token", data.token);
 
     return redirect("/",

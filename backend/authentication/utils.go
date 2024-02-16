@@ -11,7 +11,7 @@ import (
 	"github.com/golang-jwt/jwt"
 	"golang.org/x/crypto/bcrypt"
 
-	models "ygocarddb/models"
+	"ygocarddb/models"
 )
 
 // Hash password with bcrypt
@@ -29,6 +29,7 @@ func GenerateToken(user models.User) (string, error) {
 	claims := jwt.MapClaims{}
 	claims["authorized"] = true
 	claims["email"] = user.Email
+	claims["id"] = user.Id
 	claims["exp"] = time.Now().Add(time.Hour * 24).Unix() //Token expires after 1 day
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -83,4 +84,20 @@ func ExtractToken(r *http.Request) string {
 	}
 
 	return ""
+}
+
+func ParseToken(tokenString string) (jwt.MapClaims, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		//Make sure that the token method conform to "SigningMethodHMAC"
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		return []byte(os.Getenv("API_SECRET")), nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return token.Claims.(jwt.MapClaims), nil
 }

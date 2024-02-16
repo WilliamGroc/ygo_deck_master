@@ -1,7 +1,7 @@
 package users
 
 import (
-	Authentication "ygocarddb/authentication"
+	"ygocarddb/authentication"
 
 	"github.com/gorilla/mux"
 )
@@ -13,7 +13,7 @@ func RegisterRoutes(r *mux.Router) {
 	s.HandleFunc("/register", Register).Methods("POST")
 
 	secure := s.PathPrefix("").Subrouter()
-	secure.Use(Authentication.TokenVerifyMiddleWare)
+	secure.Use(authentication.TokenVerifyMiddleWare)
 
 	secure.HandleFunc("/{id}", GetUser).Methods("GET")
 	secure.HandleFunc("/{id}", UpdateUser).Methods("PUT")

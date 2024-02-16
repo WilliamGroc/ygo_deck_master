@@ -17,8 +17,8 @@ export function Navbar({ setLang, currentLang, isAuthenticatied }: Props) {
           <Link to="/" className="btn btn-secondary">
             Card list
           </Link>
-          {isAuthenticatied ? <Link to="/deck" className="btn btn-secondary">
-            Deck
+          {isAuthenticatied ? <Link to="/decks" className="btn btn-secondary">
+            Decks
           </Link>
             : <Link to="/login" className="btn btn-secondary">
               Login

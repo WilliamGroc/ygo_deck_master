@@ -3,14 +3,14 @@ package main
 import (
 	"log"
 	"net/http"
+	"ygocarddb/api/cards"
+	"ygocarddb/api/decks"
+	"ygocarddb/api/users"
+	"ygocarddb/database"
+	"ygocarddb/middlewares"
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
-
-	Cards "ygocarddb/api/cards"
-	Users "ygocarddb/api/users"
-	Database "ygocarddb/database"
-	Middleware "ygocarddb/middlewares"
 )
 
 func main() {
@@ -19,16 +19,17 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
-	Database.InitMongoDb()
+	database.InitMongoDb()
 
 	r := mux.NewRouter()
 
-	r.Use(Middleware.CorsMiddleware)
-	r.Use(Middleware.LoggingMiddleware)
-	r.Use(Middleware.ContentTypeApplicationJsonMiddleware)
+	r.Use(middlewares.CorsMiddleware)
+	r.Use(middlewares.LoggingMiddleware)
+	r.Use(middlewares.ContentTypeApplicationJsonMiddleware)
 
-	Cards.RegisterRoutes(r)
-	Users.RegisterRoutes(r)
+	cards.RegisterRoutes(r)
+	users.RegisterRoutes(r)
+	decks.RegisterRoutes(r)
 
 	log.Println("Le serveur écoute sur le port 8080")
 	log.Fatal(http.ListenAndServe(":8080", r))

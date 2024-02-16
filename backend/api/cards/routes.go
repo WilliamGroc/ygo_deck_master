@@ -1,7 +1,7 @@
 package cards
 
 import (
-	Authentication "ygocarddb/authentication"
+	"ygocarddb/authentication"
 
 	"github.com/gorilla/mux"
 )
@@ -15,6 +15,6 @@ func RegisterRoutes(r *mux.Router) {
 	s.HandleFunc("/{id}/image/big", GetCardImageBig).Methods("GET")
 
 	secure := s.PathPrefix("").Subrouter()
-	secure.Use(Authentication.TokenVerifyMiddleWare)
+	secure.Use(authentication.TokenVerifyMiddleWare)
 	secure.HandleFunc("/load", LoadCards).Methods("POST")
 }
