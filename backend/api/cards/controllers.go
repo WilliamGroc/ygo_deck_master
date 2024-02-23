@@ -14,40 +14,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-type ResponsePaginated struct {
-	Total   int64                  `json:"total"`
-	Data    []interface{}          `json:"data"`
-	Filters map[string]interface{} `json:"filters"`
-}
-
-type ColumnList struct {
-	List []string `bson:"list"`
-}
-
-func getFilters(coll *mongo.Collection, column string, r *http.Request) ColumnList {
-	// Aggregate collection to get type list
-	pipeline := mongo.Pipeline{
-		bson.D{{Key: "$group", Value: bson.D{
-			{Key: "_id", Value: nil},
-			{Key: "list", Value: bson.D{
-				{Key: "$addToSet", Value: "$" + column},
-			}},
-		}}},
-	}
-
-	cursorType, err := coll.Aggregate(r.Context(), pipeline)
-	if err != nil {
-		log.Panic(err)
-	}
-
-	var list []ColumnList
-	if err = cursorType.All(r.Context(), &list); err != nil {
-		log.Panic(err)
-	}
-
-	return list[0]
-}
-
 func GetCards(w http.ResponseWriter, r *http.Request) {
 	db := database.MongoInstance
 	coll := db.Collection("Card")
@@ -111,8 +77,8 @@ func GetCards(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get filters
-	types := getFilters(coll, "frametype", r)
-	attributes := getFilters(coll, "attribute", r)
+	types := utils.GetFilters(coll, "frametype", r)
+	attributes := utils.GetFilters(coll, "attribute", r)
 
 	// Convert cards to []interface{}
 	var data []interface{}
@@ -121,7 +87,7 @@ func GetCards(w http.ResponseWriter, r *http.Request) {
 		data = append(data, card)
 	}
 
-	json.NewEncoder(w).Encode(ResponsePaginated{
+	json.NewEncoder(w).Encode(utils.ResponsePaginated{
 		Total: total,
 		Data:  data,
 		Filters: map[string]interface{}{

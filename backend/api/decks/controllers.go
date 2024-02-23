@@ -3,6 +3,7 @@ package decks
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 	"ygocarddb/database"
@@ -17,8 +18,18 @@ func ListDecks(w http.ResponseWriter, r *http.Request) {
 	db := database.MongoInstance
 	coll := db.Collection("Deck")
 
+	var filters = bson.D{{
+		Key: "$or",
+		Value: bson.A{
+			bson.D{{Key: "ispublic", Value: true}},
+			bson.D{{Key: "createdby", Value: r.URL.Query().Get("userId")}},
+		}}, {
+		Key:   "name",
+		Value: bson.D{{Key: "$regex", Value: r.URL.Query().Get("search")}},
+	}}
+
 	var decks []models.Deck
-	cursor, err := coll.Find(r.Context(), nil)
+	cursor, err := coll.Find(r.Context(), filters)
 
 	if err != nil {
 		fmt.Println(err)
@@ -33,7 +44,22 @@ func ListDecks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(decks)
+	total, err := coll.CountDocuments(r.Context(), filters)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	var data []interface{}
+
+	for _, card := range decks {
+		data = append(data, card)
+	}
+
+	json.NewEncoder(w).Encode(utils.ResponsePaginated{
+		Total:   total,
+		Data:    data,
+		Filters: map[string]interface{}{},
+	})
 }
 
 func GetDeck(w http.ResponseWriter, r *http.Request) {

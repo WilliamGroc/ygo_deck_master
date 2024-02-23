@@ -1,5 +1,5 @@
 import { LoaderFunctionArgs } from "@remix-run/node";
-import { useLoaderData } from "@remix-run/react";
+import { Link, useLoaderData } from "@remix-run/react";
 import { useEffect, useMemo, useState } from "react";
 import { Lang } from "~/const/lang";
 import { Card } from "~/models/card.model";
@@ -32,25 +32,28 @@ export default function CardPage() {
   }, [card, lang]);
 
   return (
-    <div className="flex">
-      <img src={`http://localhost:8080/cards/${card.id}/image/big`} width={width} />
-      <div className="p-4 flex-1">
-        <div className="font-bold text-xl">
-          {translatedCard.name}
-        </div>
-        <div>
-          {
-            !['trap', 'spell'].includes(card.frameType) &&
-            <div className="flex flex-col">
-              <span>Atk: <b>{card.atk}</b></span>
-              <span>Def: <b>{card.def}</b></span>
-            </div>
-          }
-        </div>
-        <div>
-          {
-            translatedCard.effectText
-          }
+    <div>
+      <Link to="/">Back to Decks</Link>
+      <div className="flex mt-2">
+        <img src={`http://localhost:8080/cards/${card.id}/image/big`} width={width} />
+        <div className="p-4 flex-1">
+          <div className="font-bold text-xl">
+            {translatedCard.name}
+          </div>
+          <div>
+            {
+              !['trap', 'spell'].includes(card.frameType) &&
+              <div className="flex flex-col">
+                <span>Atk: <b>{card.atk}</b></span>
+                <span>Def: <b>{card.def}</b></span>
+              </div>
+            }
+          </div>
+          <div>
+            {
+              translatedCard.effectText
+            }
+          </div>
         </div>
       </div>
     </div>
