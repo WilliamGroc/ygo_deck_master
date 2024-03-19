@@ -9,9 +9,9 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"ygocarddb/authentication"
+	"ygocarddb/server/authentication"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -67,14 +67,14 @@ func SendImage(w http.ResponseWriter, filePath string) {
 }
 
 func GetParamId(r *http.Request) (int, error) {
-	params := mux.Vars(r)
+	idParam := chi.URLParam(r, "id")
 
-	if params["id"] == "" {
+	if idParam == "" {
 		err := errors.New("no id provided")
 		return 0, err
 	}
 
-	id, err := strconv.Atoi(params["id"])
+	id, err := strconv.Atoi(idParam)
 
 	if err != nil {
 		return 0, err

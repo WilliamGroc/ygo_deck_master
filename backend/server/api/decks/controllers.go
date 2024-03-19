@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"time"
-	"ygocarddb/database"
 	"ygocarddb/models"
 	"ygocarddb/utils"
 
@@ -14,9 +13,8 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func ListDecks(w http.ResponseWriter, r *http.Request) {
-	db := database.MongoInstance
-	coll := db.Collection("Deck")
+func (t *DecksRoutes) ListDecks(w http.ResponseWriter, r *http.Request) {
+	coll := t.DB.Collection("Deck")
 
 	var filters = bson.D{{
 		Key: "$or",
@@ -62,9 +60,8 @@ func ListDecks(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func GetDeck(w http.ResponseWriter, r *http.Request) {
-	db := database.MongoInstance
-	coll := db.Collection("Deck")
+func (t *DecksRoutes) GetDeck(w http.ResponseWriter, r *http.Request) {
+	coll := t.DB.Collection("Deck")
 
 	id, err := utils.GetParamId(r)
 
@@ -94,9 +91,8 @@ func GetDeck(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(deck)
 }
 
-func CreateDeck(w http.ResponseWriter, r *http.Request) {
-	db := database.MongoInstance
-	coll := db.Collection("Deck")
+func (t *DecksRoutes) CreateDeck(w http.ResponseWriter, r *http.Request) {
+	coll := t.DB.Collection("Deck")
 
 	userId, err := utils.GetUserId(r)
 	if err != nil {
@@ -146,9 +142,8 @@ func CreateDeck(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(output)
 }
 
-func UpdateDeck(w http.ResponseWriter, r *http.Request) {
-	db := database.MongoInstance
-	coll := db.Collection("Deck")
+func (t *DecksRoutes) UpdateDeck(w http.ResponseWriter, r *http.Request) {
+	coll := t.DB.Collection("Deck")
 
 	id, err := utils.GetParamId(r)
 	if err != nil {
@@ -202,9 +197,8 @@ func UpdateDeck(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(output)
 }
 
-func DeleteDeck(w http.ResponseWriter, r *http.Request) {
-	db := database.MongoInstance
-	coll := db.Collection("Deck")
+func (t *DecksRoutes) DeleteDeck(w http.ResponseWriter, r *http.Request) {
+	coll := t.DB.Collection("Deck")
 
 	id, err := utils.GetParamId(r)
 	if err != nil {

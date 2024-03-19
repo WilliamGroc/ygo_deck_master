@@ -14,6 +14,16 @@ import (
 	"ygocarddb/models"
 )
 
+type Token interface {
+	HashPassword(password string) ([]byte, error)
+	VerifyPassword(hashedPassword string, password string) error
+	GenerateToken(user models.User) (string, error)
+	TokenValid(r *http.Request) error
+	ExtractToken(r *http.Request) string
+	ParseToken(tokenString string) (jwt.MapClaims, error)
+	Pretty(data interface{})
+}
+
 // Hash password with bcrypt
 func HashPassword(password string) ([]byte, error) {
 	return bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)

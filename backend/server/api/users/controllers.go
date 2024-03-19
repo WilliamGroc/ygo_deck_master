@@ -4,17 +4,15 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"ygocarddb/authentication"
-	"ygocarddb/database"
 	"ygocarddb/models"
+	"ygocarddb/server/authentication"
 
 	"go.mongodb.org/mongo-driver/bson"
 )
 
 // Implement login controller
-func Login(w http.ResponseWriter, r *http.Request) {
-	db := database.MongoInstance
-	coll := db.Collection("User")
+func (t *UsersRoutes) Login(w http.ResponseWriter, r *http.Request) {
+	coll := t.DB.Collection("User")
 
 	var user models.User
 	json.NewDecoder(r.Body).Decode(&user)
@@ -51,9 +49,8 @@ func Login(w http.ResponseWriter, r *http.Request) {
 }
 
 // Implement register controller
-func Register(w http.ResponseWriter, r *http.Request) {
-	db := database.MongoInstance
-	coll := db.Collection("User")
+func (t *UsersRoutes) Register(w http.ResponseWriter, r *http.Request) {
+	coll := t.DB.Collection("User")
 
 	var user models.User
 	json.NewDecoder(r.Body).Decode(&user)
@@ -88,14 +85,14 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
-func GetUser(w http.ResponseWriter, r *http.Request) {
+func (t *UsersRoutes) GetUser(w http.ResponseWriter, r *http.Request) {
 	// params := mux.Vars(r)
 	// var user models.User
 	// database.Instance.Select("id", "name", "username", "email").First(&user, params["id"])
 	// json.NewEncoder(w).Encode(user)
 }
 
-func UpdateUser(w http.ResponseWriter, r *http.Request) {
+func (t *UsersRoutes) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	// params := mux.Vars(r)
 
 	// var user models.User
@@ -117,7 +114,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	// json.NewEncoder(w).Encode(&user)
 }
 
-func DeleteUser(w http.ResponseWriter, r *http.Request) {
+func (t *UsersRoutes) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	// params := mux.Vars(r)
 
 	// database.Instance.Delete(&models.User{}, params["id"])

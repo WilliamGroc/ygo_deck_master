@@ -9,9 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var MongoInstance *mongo.Database
-
-func InitMongoDb() {
+func InitMongoDb() *mongo.Database {
 	uri := os.Getenv("MONGODB_URI")
 	fmt.Println(uri)
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
@@ -20,5 +18,5 @@ func InitMongoDb() {
 		panic(err)
 	}
 
-	MongoInstance = client.Database("ygo_deck_master")
+	return client.Database("ygo_deck_master")
 }

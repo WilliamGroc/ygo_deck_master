@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"ygocarddb/database"
 	"ygocarddb/models"
 	"ygocarddb/utils"
 
@@ -14,9 +13,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func GetCards(w http.ResponseWriter, r *http.Request) {
-	db := database.MongoInstance
-	coll := db.Collection("Card")
+func (t *CardsRoutes) GetCards(w http.ResponseWriter, r *http.Request) {
+	coll := t.DB.Collection("Card")
 
 	findOptions := utils.Pagination(r)
 
@@ -97,9 +95,8 @@ func GetCards(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func GetCard(w http.ResponseWriter, r *http.Request) {
-	db := database.MongoInstance
-	coll := db.Collection("Card")
+func (t *CardsRoutes) GetCard(w http.ResponseWriter, r *http.Request) {
+	coll := t.DB.Collection("Card")
 
 	id, err := utils.GetParamId(r)
 	if err != nil {
@@ -120,7 +117,7 @@ func GetCard(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(card)
 }
 
-func GetCardImage(w http.ResponseWriter, r *http.Request) {
+func (t *CardsRoutes) GetCardImage(w http.ResponseWriter, r *http.Request) {
 	id, err := utils.GetParamId(r)
 	if err != nil {
 		log.Panic(err)
@@ -129,7 +126,7 @@ func GetCardImage(w http.ResponseWriter, r *http.Request) {
 	utils.SendImage(w, filePath)
 }
 
-func GetCardImageBig(w http.ResponseWriter, r *http.Request) {
+func (t *CardsRoutes) GetCardImageBig(w http.ResponseWriter, r *http.Request) {
 	id, err := utils.GetParamId(r)
 	if err != nil {
 		log.Panic(err)

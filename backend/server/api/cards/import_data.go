@@ -9,7 +9,6 @@ import (
 	"os"
 	"strconv"
 	"time"
-	"ygocarddb/database"
 	"ygocarddb/models"
 	"ygocarddb/utils"
 )
@@ -42,9 +41,8 @@ type CardData struct {
 	CardData models.Card `json:"cardData"`
 }
 
-func LoadCards(w http.ResponseWriter, r *http.Request) {
-	db := database.MongoInstance
-	coll := db.Collection("Card")
+func (t *CardsRoutes) LoadCards(w http.ResponseWriter, r *http.Request) {
+	coll := t.DB.Collection("Card")
 
 	content, err := os.ReadFile("../card_list.json")
 	if err != nil {
